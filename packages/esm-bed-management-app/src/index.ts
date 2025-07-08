@@ -1,6 +1,8 @@
 import { defineConfigSchema, getAsyncLifecycle, getSyncLifecycle } from '@openmrs/esm-framework';
 import { configSchema } from './config-schema';
 import { createLeftPanelLink } from './left-panel-link.component';
+import AddLocationWorkspace from './forms/add-location/add-location.workspace';
+import AddBedWorkspace from './forms/add-bed/add-bed.workspace';
 
 const moduleName = '@openmrs/esm-bed-management-app';
 
@@ -36,6 +38,9 @@ export const adminLeftPanelLink = getSyncLifecycle(
   }),
   options,
 );
+
+export const addLocation = getSyncLifecycle(AddLocationWorkspace, options);
+export const addBed = getSyncLifecycle(AddBedWorkspace, options);
 
 export const bedTypeLeftPanelLink = getSyncLifecycle(
   createLeftPanelLink({

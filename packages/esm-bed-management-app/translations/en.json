@@ -3,7 +3,9 @@
   "addBed": "Add bed",
   "addBedTag": "Create bed tag",
   "addBedType": "Add bed type",
+  "addLocation": "Add Location",
   "allocationStatus": "Allocated",
+  "bedAllocation": "Bed allocation",
   "bedColumn": "Bed column",
   "bedId": "Bed ID",
   "bedLocation": "Location",
@@ -58,6 +60,7 @@
   "errorDeletingBedTag": "Error deleting bed tag",
   "errorDeletingBedType": "Error deleting bed type",
   "errorFetchingbedInformation": "Error fetching bed information",
+  "filterByLocation": "Filter by location",
   "filterByOccupancyStatus": "Filter by occupancy status",
   "id": "ID",
   "ids": "Id",
@@ -96,6 +99,5 @@
   "summary": "Summary",
   "type": "Type",
   "viewBeds": "View beds",
-  "wardAllocation": "Ward allocation",
   "yes": "Yes"
 }

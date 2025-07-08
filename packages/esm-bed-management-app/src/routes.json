@@ -71,5 +71,20 @@
       "name": "new-bed-type-modal",
       "component": "newBedTypeModal"
     }
+  ],
+  "workspaces": [
+    {
+      "name": "add-location-workspace",
+      "title": "Add Location",
+      "component": "addLocation",
+      "type": "workspace"
+    },
+    {
+        "name": "add-bed-workspace",
+        "title": "Add Bed",
+        "component": "addBed",
+        "type": "workspace"
+
+    }
   ]
 }

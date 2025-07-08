@@ -20,7 +20,9 @@ import {
 import { Add, Edit, LocationCompany } from '@carbon/react/icons';
 import {
   ErrorState,
+  WorkspaceContainer,
   isDesktop as desktopLayout,
+  launchWorkspace,
   showModal,
   useLayoutType,
   usePagination,
@@ -48,24 +50,6 @@ const BedAdministrationTable: React.FC = () => {
   } = useBedsGroupedByLocation();
   const [filterOption, setFilterOption] = useState('ALL');
 
-  const openNewBedModal = () => {
-    const dispose = showModal('new-bed-modal', {
-      closeModal: () => dispose(),
-      mutate: mutateBedsGroupedByLocation,
-    });
-  };
-
-  const openEditBedModal = useCallback(
-    (editData: BedWithLocation) => {
-      const dispose = showModal('edit-bed-modal', {
-        closeModal: () => dispose(),
-        mutate: mutateBedsGroupedByLocation,
-        editData,
-      });
-    },
-    [mutateBedsGroupedByLocation],
-  );
-
   function CustomTag({ condition }: { condition: boolean }) {
     const { t } = useTranslation();
 
@@ -92,6 +76,18 @@ const BedAdministrationTable: React.FC = () => {
   }, [bedsGroupedByLocation, filterOption]);
   const [pageSize, setPageSize] = useState(10);
   const { results: paginatedData, currentPage, goTo } = usePagination(filteredData, pageSize);
+
+  const handleAddLocationWorkspace = () => {
+    launchWorkspace('add-location-workspace', {
+      workspaceTitle: t('addLocation', 'Add Location'),
+    });
+  };
+  const handleAddBedWorkspace = () => {
+    launchWorkspace('add-bed-workspace', {
+      workspaceTitle: t('addBed', 'Add Bed'),
+      mutateBeds: mutateBedsGroupedByLocation,
+    });
+  };
 
   const tableHeaders = [
     {
@@ -128,9 +124,12 @@ const BedAdministrationTable: React.FC = () => {
           <Button
             enterDelayMs={300}
             renderIcon={Edit}
-            onClick={(e) => {
-              e.preventDefault();
-              openEditBedModal(bed);
+            onClick={() => {
+              launchWorkspace('add-bed-workspace', {
+                workspaceTitle: t('editBed', 'Edit bed'),
+                bed,
+                mutateBeds: mutateBedsGroupedByLocation,
+              });
             }}
             kind={'ghost'}
             iconDescription={t('editBed', 'Edit bed')}
@@ -141,7 +140,7 @@ const BedAdministrationTable: React.FC = () => {
         </>
       ),
     }));
-  }, [openEditBedModal, responsiveSize, paginatedData, t]);
+  }, [mutateBedsGroupedByLocation, responsiveSize, paginatedData, t]);
 
   if (isLoadingBedsGroupedByLocation && !bedsGroupedByLocation.length) {
     return (
@@ -171,6 +170,9 @@ const BedAdministrationTable: React.FC = () => {
 
       <div className={styles.widgetCard}>
         <CardHeader title={headerTitle}>
+          <span className={styles.backgroundDataFetchingIndicator}>
+            <span>{isValidatingBedsGroupedByLocation ? <InlineLoading /> : null}</span>
+          </span>
           <div className={styles.headerActions}>
             {paginatedData?.length ? (
               <div className={styles.filterContainer}>
@@ -195,11 +197,14 @@ const BedAdministrationTable: React.FC = () => {
               </div>
             ) : null}
             {paginatedData?.length ? (
-              <Button kind="ghost" renderIcon={(props) => <Add size={16} {...props} />} onClick={openNewBedModal}>
+              <Button kind="ghost" renderIcon={(props) => <Add size={16} {...props} />} onClick={handleAddBedWorkspace}>
                 {t('addBed', 'Add bed')}
               </Button>
             ) : null}
-            <Button kind="ghost" renderIcon={(props) => <Add size={16} {...props} />} onClick={''}>
+            <Button
+              kind="ghost"
+              renderIcon={(props) => <Add size={16} {...props} />}
+              onClick={handleAddLocationWorkspace}>
               {t('addLocation', 'Add Location')}
             </Button>
           </div>
@@ -237,7 +242,7 @@ const BedAdministrationTable: React.FC = () => {
                       kind="ghost"
                       size="sm"
                       renderIcon={(props) => <Add size={16} {...props} />}
-                      onClick={openNewBedModal}>
+                      onClick={handleAddBedWorkspace}>
                       {t('addBed', 'Add bed')}
                     </Button>
                   </Tile>
@@ -265,6 +270,7 @@ const BedAdministrationTable: React.FC = () => {
           )}
         </DataTable>
       </div>
+      <WorkspaceContainer contextKey="bed-administration" />
     </>
   );
 };

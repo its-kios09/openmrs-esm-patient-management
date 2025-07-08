@@ -17,7 +17,7 @@ import {
   Tag,
   Tile,
 } from '@carbon/react';
-import { Add, Edit } from '@carbon/react/icons';
+import { Add, Edit, LocationCompany } from '@carbon/react/icons';
 import {
   ErrorState,
   isDesktop as desktopLayout,
@@ -33,7 +33,7 @@ import styles from './bed-administration-table.scss';
 
 const BedAdministrationTable: React.FC = () => {
   const { t } = useTranslation();
-  const headerTitle = t('wardAllocation', 'Ward allocation');
+  const headerTitle = t('bedAllocation', 'Bed allocation');
   const layout = useLayoutType();
   const isTablet = layout === 'tablet';
   const responsiveSize = isTablet ? 'lg' : 'sm';
@@ -146,7 +146,7 @@ const BedAdministrationTable: React.FC = () => {
   if (isLoadingBedsGroupedByLocation && !bedsGroupedByLocation.length) {
     return (
       <>
-        <Header title={t('wardAllocation', 'Ward allocation')} />
+        <Header title={t('bedAllocation', 'Bed allocation')} />
         <div className={styles.widgetCard}>
           <DataTableSkeleton role="progressbar" compact={isDesktop} zebra />
         </div>
@@ -157,7 +157,7 @@ const BedAdministrationTable: React.FC = () => {
   if (errorFetchingBedsGroupedByLocation) {
     return (
       <>
-        <Header title={t('wardAllocation', 'Ward allocation')} />
+        <Header title={t('bedAllocation', 'Bed allocation')} />
         <div className={styles.widgetCard}>
           <ErrorState error={errorFetchingBedsGroupedByLocation} headerTitle={headerTitle} />
         </div>
@@ -167,32 +167,42 @@ const BedAdministrationTable: React.FC = () => {
 
   return (
     <>
-      <Header title={t('wardAllocation', 'Ward allocation')} />
-      <div className={styles.flexContainer}>
-        {paginatedData?.length ? (
-          <div className={styles.filterContainer}>
-            <Dropdown
-              id="occupancyStatus"
-              initialSelectedItem={'All'}
-              label=""
-              titleText={t('filterByOccupancyStatus', 'Filter by occupancy status') + ':'}
-              type="inline"
-              items={['All', 'Available', 'Occupied']}
-              onChange={handleBedStatusChange}
-            />
-          </div>
-        ) : null}
-      </div>
+      <Header title={t('bedAllocation', 'Bed allocation')} />
+
       <div className={styles.widgetCard}>
         <CardHeader title={headerTitle}>
-          <span className={styles.backgroundDataFetchingIndicator}>
-            <span>{isValidatingBedsGroupedByLocation ? <InlineLoading /> : null}</span>
-          </span>
-          {paginatedData?.length ? (
-            <Button kind="ghost" renderIcon={(props) => <Add size={16} {...props} />} onClick={openNewBedModal}>
-              {t('addBed', 'Add bed')}
+          <div className={styles.headerActions}>
+            {paginatedData?.length ? (
+              <div className={styles.filterContainer}>
+                <Dropdown
+                  id="locationFilter"
+                  initialSelectedItem={'All'}
+                  label=""
+                  titleText={t('filterByLocation', 'Filter by location') + ':'}
+                  type="inline"
+                  items={['All', 'Available', 'Occupied']}
+                  onChange={handleBedStatusChange}
+                />
+                <Dropdown
+                  id="occupancyStatus"
+                  initialSelectedItem={'All'}
+                  label=""
+                  titleText={t('filterByOccupancyStatus', 'Filter by occupancy status') + ':'}
+                  type="inline"
+                  items={['All', 'Available', 'Occupied']}
+                  onChange={handleBedStatusChange}
+                />
+              </div>
+            ) : null}
+            {paginatedData?.length ? (
+              <Button kind="ghost" renderIcon={(props) => <Add size={16} {...props} />} onClick={openNewBedModal}>
+                {t('addBed', 'Add bed')}
+              </Button>
+            ) : null}
+            <Button kind="ghost" renderIcon={(props) => <Add size={16} {...props} />} onClick={''}>
+              {t('addLocation', 'Add Location')}
             </Button>
-          ) : null}
+          </div>
         </CardHeader>
         <DataTable rows={tableRows} headers={tableHeaders} isSortable size={isTablet ? 'lg' : 'sm'} useZebraStyles>
           {({ rows, headers, getTableProps }) => (

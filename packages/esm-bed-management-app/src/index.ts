@@ -31,8 +31,8 @@ export const summaryLeftPanelLink = getSyncLifecycle(
 export const adminLeftPanelLink = getSyncLifecycle(
   createLeftPanelLink({
     name: 'bed-administration',
-    // t('wardAllocation', 'Ward allocation')
-    title: 'Ward allocation',
+    // t('bedAllocation', 'Bed allocation')
+    title: 'Bed allocation',
   }),
   options,
 );

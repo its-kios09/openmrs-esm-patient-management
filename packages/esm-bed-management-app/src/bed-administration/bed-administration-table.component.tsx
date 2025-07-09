@@ -177,15 +177,6 @@ const BedAdministrationTable: React.FC = () => {
             {paginatedData?.length ? (
               <div className={styles.filterContainer}>
                 <Dropdown
-                  id="locationFilter"
-                  initialSelectedItem={'All'}
-                  label=""
-                  titleText={t('filterByLocation', 'Filter by location') + ':'}
-                  type="inline"
-                  items={['All', 'Available', 'Occupied']}
-                  onChange={handleBedStatusChange}
-                />
-                <Dropdown
                   id="occupancyStatus"
                   initialSelectedItem={'All'}
                   label=""
@@ -201,12 +192,6 @@ const BedAdministrationTable: React.FC = () => {
                 {t('addBed', 'Add bed')}
               </Button>
             ) : null}
-            <Button
-              kind="ghost"
-              renderIcon={(props) => <Add size={16} {...props} />}
-              onClick={handleAddLocationWorkspace}>
-              {t('addLocation', 'Add Location')}
-            </Button>
           </div>
         </CardHeader>
         <DataTable rows={tableRows} headers={tableHeaders} isSortable size={isTablet ? 'lg' : 'sm'} useZebraStyles>

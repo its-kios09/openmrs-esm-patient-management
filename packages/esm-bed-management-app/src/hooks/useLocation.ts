@@ -10,3 +10,14 @@ export const saveLocation = async (locationPayload) => {
     },
   });
 };
+
+export const editLocation = async (locationUuid, locationPayload) => {
+  const url = `${restBaseUrl}/location/${locationUuid}`;
+  return await openmrsFetch(url, {
+    method: 'POST',
+    body: locationPayload,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+};

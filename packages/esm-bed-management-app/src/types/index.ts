@@ -36,3 +36,24 @@ export interface InitialData {
     name: string;
   };
 }
+
+export interface AdmissionLocationResponse {
+  uuid: string;
+  wardName: string;
+  totalBeds: number;
+  occupiedBeds: number;
+  availableBeds: number;
+  ward: {
+    uuid: string;
+    display: string;
+    name: string;
+    tags: Array<{
+      uuid: string;
+      display: string;
+    }>;
+    parentLocation: {
+      uuid: string;
+      display: string;
+    };
+  };
+}

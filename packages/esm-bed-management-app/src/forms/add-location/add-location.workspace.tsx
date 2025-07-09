@@ -1,5 +1,11 @@
-import React, { useEffect } from 'react';
-import { type DefaultWorkspaceProps, ResponsiveWrapper, useLayoutType, showSnackbar } from '@openmrs/esm-framework';
+import React, { useEffect, useMemo } from 'react';
+import {
+  type DefaultWorkspaceProps,
+  ResponsiveWrapper,
+  useLayoutType,
+  showSnackbar,
+  useConfig,
+} from '@openmrs/esm-framework';
 import { useTranslation } from 'react-i18next';
 import { Controller, useForm } from 'react-hook-form';
 import {
@@ -15,15 +21,16 @@ import {
 import classNames from 'classnames';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { mutate } from 'swr';
 import styles from './add-location.workspace.scss';
-import { saveLocation } from '../../hooks/useLocation';
-import { type locationFormData } from '../../types/index';
+import { editLocation, saveLocation } from '../../hooks/useLocation';
+import { type AdmissionLocationResponse } from '../../types/index';
 import { useLocationTags } from '../../hooks/useLocationTags';
 import { extractErrorMessagesFromResponse } from '../../helpers';
+import { type ConfigObject } from '../../config-schema';
 
 type AddLocationWorkspaceProps = DefaultWorkspaceProps & {
-  location?: locationFormData;
+  ward?: AdmissionLocationResponse;
+  mutateLocation: () => void;
 };
 
 const locationFormSchema = z.object({
@@ -43,12 +50,20 @@ const AddLocationWorkspace: React.FC<AddLocationWorkspaceProps> = ({
   closeWorkspace,
   closeWorkspaceWithSavedChanges,
   promptBeforeClosing,
-  location,
+  ward: location,
+  mutateLocation,
 }) => {
   const { t } = useTranslation();
   const isTablet = useLayoutType() === 'tablet';
-
   const { locationTagList: Tags } = useLocationTags();
+  const { allowedTags } = useConfig<ConfigObject>();
+
+  const filteredTags = useMemo(() => {
+    if (!Tags || !allowedTags) return [];
+
+    const allowedTagUuids = Object.values(allowedTags);
+    return Tags.filter((tag) => allowedTagUuids.includes(tag.uuid));
+  }, [Tags, allowedTags]);
 
   const {
     handleSubmit,
@@ -58,8 +73,8 @@ const AddLocationWorkspace: React.FC<AddLocationWorkspaceProps> = ({
   } = useForm<LocationFormType>({
     resolver: zodResolver(locationFormSchema),
     defaultValues: {
-      tags: [],
-      name: '',
+      name: location?.wardName || '',
+      tags: location?.ward?.tags || [],
     },
   });
 
@@ -74,12 +89,16 @@ const AddLocationWorkspace: React.FC<AddLocationWorkspaceProps> = ({
     };
 
     try {
-      await saveLocation(locationPayload);
+      if (location?.uuid) {
+        await editLocation(location.uuid, locationPayload);
+      } else {
+        await saveLocation(locationPayload);
+      }
 
       showSnackbar({
         title: t('success', 'Success'),
         kind: 'success',
-        subtitle: location
+        subtitle: location?.uuid
           ? t('locationUpdated', 'Location {{locationName}} was updated successfully.', {
               locationName: data.name,
             })
@@ -87,11 +106,7 @@ const AddLocationWorkspace: React.FC<AddLocationWorkspaceProps> = ({
               locationName: data.name,
             }),
       });
-
-      ['/location', '/bed'].forEach((endpoint) => {
-        mutate((key) => typeof key === 'string' && key.includes(endpoint), undefined, { revalidate: true });
-      });
-
+      mutateLocation();
       closeWorkspaceWithSavedChanges();
     } catch (error: any) {
       const errorMessages = extractErrorMessagesFromResponse(error);
@@ -136,20 +151,22 @@ const AddLocationWorkspace: React.FC<AddLocationWorkspaceProps> = ({
               <Controller
                 control={control}
                 name="tags"
-                render={({ field: { onChange, value, ...restField } }) => (
+                render={({ field: { onChange, value, ref } }) => (
                   <FilterableMultiSelect
                     id="locationTags"
                     titleText={t('selectTags', 'Select tag(s)')}
                     placeholder={t('selectTagPlaceholder', 'Select a tag')}
-                    items={Tags || []}
-                    selectedItems={value}
-                    onChange={({ selectedItems }) => onChange(selectedItems ?? [])}
+                    items={filteredTags || []}
+                    selectedItems={(value || []).map(
+                      (selected) => filteredTags?.find((tag) => tag.uuid === selected.uuid) || selected,
+                    )}
+                    onChange={({ selectedItems }) => onChange(selectedItems || [])}
                     itemToString={(item) => (item && typeof item === 'object' ? item.display : '')}
                     selectionFeedback="top-after-reopen"
                     invalid={!!errors.tags?.message}
                     invalidText={errors.tags?.message}
-                    disabled={!Tags?.length}
-                    {...restField}
+                    disabled={!filteredTags?.length}
+                    ref={ref}
                   />
                 )}
               />

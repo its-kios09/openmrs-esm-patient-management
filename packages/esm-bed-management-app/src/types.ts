@@ -147,6 +147,10 @@ export type AdmissionLocation = {
     display: string;
     name: string;
     description: string;
+    tags: Array<{
+      uuid: string;
+      display: string;
+    }>;
   };
   totalBeds: number;
   occupiedBeds: number;

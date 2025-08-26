@@ -25,19 +25,10 @@ export const configSchema = {
       _type: Type.Object,
       _description: 'Configuration for advanced search fields',
       _default: {
-        gender: {
-          enabled: true,
-        },
-        dateOfBirth: {
-          enabled: true,
-        },
-        age: {
-          enabled: true,
-          min: 0,
-        },
-        postcode: {
-          enabled: true,
-        },
+        gender: { enabled: true },
+        dateOfBirth: { enabled: true },
+        age: { enabled: true, min: 0 },
+        postcode: { enabled: true },
         personAttributes: [],
       },
       gender: {
@@ -67,16 +58,8 @@ export const configSchema = {
           _description: 'Optional. If true, determines whether to display the age field or not. Defaults to true',
           _default: true,
         },
-        min: {
-          _type: Type.Number,
-          _description: 'The minimum value for the age field',
-          _default: 0,
-        },
-        max: {
-          _type: Type.Number,
-          _description: 'The maximum value for the age field',
-          _default: 0,
-        },
+        min: { _type: Type.Number, _description: 'The minimum value for the age field', _default: 0 },
+        max: { _type: Type.Number, _description: 'The maximum value for the age field', _default: 0 },
       },
       postcode: {
         _type: Type.Object,
@@ -92,15 +75,8 @@ export const configSchema = {
         _description: 'Configuration for person attributes to display on advanced search',
         _elements: {
           _type: Type.Object,
-          placeholder: {
-            _type: Type.String,
-            _description: 'Placeholder text for the field',
-            _default: '',
-          },
-          attributeTypeUuid: {
-            _type: Type.UUID,
-            _description: 'UUID of the person attribute type',
-          },
+          placeholder: { _type: Type.String, _description: 'Placeholder text for the field', _default: '' },
+          attributeTypeUuid: { _type: Type.UUID, _description: 'UUID of the person attribute type' },
           answerConceptSetUuid: {
             _type: Type.ConceptUuid,
             _default: null,
@@ -130,9 +106,7 @@ export const configSchema = {
   },
   contactAttributeType: {
     _type: Type.Array,
-    _elements: {
-      _type: Type.UUID,
-    },
+    _elements: { _type: Type.UUID },
     _default: [
       // Telephone Number attribute type UUID
       '14d4f066-15f5-102d-96e4-000c29c2a5d7',
@@ -142,9 +116,7 @@ export const configSchema = {
   },
   defaultIdentifierTypes: {
     _type: Type.Array,
-    _elements: {
-      _type: Type.UUID,
-    },
+    _elements: { _type: Type.UUID },
     _description:
       'A list of identifier types to be displayed in the patient search results as banner tags. Defaults to the OpenMRS ID identifier type.',
     _default: [
@@ -156,6 +128,19 @@ export const configSchema = {
     _type: Type.String,
     _default: '{given} {family}',
     _description: 'Name template format for fhir patient name display like {given} {family} {fullName}',
+  },
+  identifierTypes: {
+    _type: Type.Array,
+    _elements: { _type: Type.Object, properties: { identifierType: { _type: Type.String }, identifierValue: { _type: Type.String } } },
+    _default: [
+      { identifierType: 'Select an identifier type', identifierValue: 'select-identifier-type' },
+      { identifierType: 'National ID', identifierValue: 'National ID' },
+      { identifierType: 'Passport Number', identifierValue: 'passport-number' },
+      { identifierType: 'Birth Certificate Number', identifierValue: 'birth-certificate-number' },
+      { identifierType: 'Alien ID Number', identifierValue: 'alien-id-number' },
+      { identifierType: 'Refugee ID Number', identifierValue: 'refugee-number' },
+    ],
+    _description: 'List of identifier types with unique keys for each.',
   },
 };
 
@@ -193,4 +178,7 @@ export type PatientSearchConfig = {
   defaultIdentifierTypes: Array<string>;
   includeDead: boolean;
   nameTemplate: string;
+  identifierTypes: Array<
+  {identifierType: string; identifierValue: string}
+  >;
 };

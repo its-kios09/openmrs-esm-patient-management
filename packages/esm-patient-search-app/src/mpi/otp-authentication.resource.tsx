@@ -119,32 +119,66 @@ export async function createPatientPayload(patient: SearchedPatient) {
       addresses: patient.person.addresses,
     },
     identifiers: patient.identifiers
-      .map((identifier) => ({
-        identifier: identifier.identifier,
-        identifierType: identifier.identifierType.uuid,
-        location: identifier.location.uuid,
-        preferred: identifier.preferred,
-      }))
-      .filter((identifier) => identifier.identifierType !== undefined),
+      .map((identifier) => {
+        // Handle cases where identifierType might be a string or an object
+        let identifierTypeUuid;
+        if (typeof identifier.identifierType === 'string') {
+          identifierTypeUuid = identifier.identifierType;
+        } else if (identifier.identifierType && identifier.identifierType.uuid) {
+          identifierTypeUuid = identifier.identifierType.uuid;
+        } else {
+          console.warn('Invalid identifierType:', identifier.identifierType);
+          return null; // Skip this identifier
+        }
+
+        // Handle cases where location might be a string or an object
+        let locationUuid;
+        if (typeof identifier.location === 'string') {
+          locationUuid = identifier.location;
+        } else if (identifier.location && identifier.location.uuid) {
+          locationUuid = identifier.location.uuid;
+        } else {
+          // If no location provided, we'll use session location later
+          locationUuid = null;
+        }
+
+        return {
+          identifier: identifier.identifier,
+          identifierType: identifierTypeUuid,
+          location: locationUuid,
+          preferred: identifier.preferred,
+        };
+      })
+      .filter((identifier) => identifier !== null && identifier.identifierType !== undefined),
   };
 
+  // Get session location for identifiers that don't have a location
+  const sessionLocation = await getSessionLocation();
+
+  // Update identifiers that don't have a location
+  payload.identifiers = payload.identifiers.map((identifier) => ({
+    ...identifier,
+    location: identifier.location || sessionLocation.uuid,
+  }));
+
+  // Generate OpenMRS identifier
   const openmrsIdentifierSource = 'fb034aac-2353-4940-abe2-7bc94e7c1e71';
   const identifierValue = await generateIdentifier(openmrsIdentifierSource);
-  const location = await getSessionLocation();
   const openmrsIdentifier = {
     identifier: identifierValue.data.identifier,
     identifierType: 'dfacd928-0370-4315-99d7-6ec1c9f7ae76',
-    location: location.uuid,
+    location: sessionLocation.uuid,
     preferred: true,
   };
 
   payload.identifiers.push(openmrsIdentifier);
 
+  // Add CR Number identifier if externalId exists
   if (patient?.externalId) {
     const crNumberIdentifier = {
-      identifier: patient?.externalId,
+      identifier: patient.externalId,
       identifierType: '52c3c0c3-05b8-4b26-930e-2a6a54e14c90',
-      location: location.uuid,
+      location: sessionLocation.uuid,
       preferred: false,
     };
     payload.identifiers.push(crNumberIdentifier);
@@ -152,10 +186,7 @@ export async function createPatientPayload(patient: SearchedPatient) {
 
   return payload;
 }
-// create a payload to update the patient, given the local patient and the patient to be created
-// if the patient name and gender are the same, do not update the patient
-// if the patient name and gender are not the same, update the patient
-// also add the SHA Identifier
+
 export async function createPatientUpdatePayload(localPatient: any, patient: SearchedPatient) {
   const updatedPayload: any = {};
 
@@ -186,32 +217,51 @@ export async function createPatientUpdatePayload(localPatient: any, patient: Sea
     };
   }
 
+  // Get session location
+  const sessionLocation = await getSessionLocation();
+
   // Add SHA identifier if it doesn't exist
-  const hasShaIdentifier = localPatient.identifiers.some(
-    (identifier: Identifier) => identifier.identifierType.uuid === '24aedd37-b5be-4e08-8311-3721b8d5100d',
-  );
+  const hasShaIdentifier = localPatient.identifiers.some((identifier: Identifier) => {
+    const identifierTypeUuid =
+      typeof identifier.identifierType === 'string' ? identifier.identifierType : identifier.identifierType?.uuid;
+    return identifierTypeUuid === '24aedd37-b5be-4e08-8311-3721b8d5100d';
+  });
 
   if (!hasShaIdentifier) {
-    const shaIdentifier = patient.identifiers.filter(
-      (identifier: Identifier) => identifier.identifierType.uuid === '24aedd37-b5be-4e08-8311-3721b8d5100d',
-    );
-    updatedPayload.identifiers = shaIdentifier.map((identifier: Identifier) => ({
-      identifier: identifier.identifier,
-      location: identifier.location.uuid,
-      identifierType: identifier.identifierType.uuid,
-      preferred: false,
-    }));
+    const shaIdentifier = patient.identifiers.filter((identifier: Identifier) => {
+      const identifierTypeUuid =
+        typeof identifier.identifierType === 'string' ? identifier.identifierType : identifier.identifierType?.uuid;
+      return identifierTypeUuid === '24aedd37-b5be-4e08-8311-3721b8d5100d';
+    });
+
+    updatedPayload.identifiers = shaIdentifier.map((identifier: Identifier) => {
+      const identifierTypeUuid =
+        typeof identifier.identifierType === 'string' ? identifier.identifierType : identifier.identifierType?.uuid;
+      const locationUuid =
+        typeof identifier.location === 'string'
+          ? identifier.location
+          : identifier.location?.uuid || sessionLocation.uuid;
+
+      return {
+        identifier: identifier.identifier,
+        location: locationUuid,
+        identifierType: identifierTypeUuid,
+        preferred: false,
+      };
+    });
   }
-  const hasCRNumber = localPatient.identifiers?.some(
-    (identifier: Identifier) => identifier.identifierType?.uuid === '52c3c0c3-05b8-4b26-930e-2a6a54e14c90',
-  );
+
+  const hasCRNumber = localPatient.identifiers?.some((identifier: Identifier) => {
+    const identifierTypeUuid =
+      typeof identifier.identifierType === 'string' ? identifier.identifierType : identifier.identifierType?.uuid;
+    return identifierTypeUuid === '52c3c0c3-05b8-4b26-930e-2a6a54e14c90';
+  });
 
   if (!hasCRNumber && patient?.externalId) {
-    const location = await getSessionLocation();
     const crNumberIdentifier = {
       identifier: patient.externalId,
       identifierType: '52c3c0c3-05b8-4b26-930e-2a6a54e14c90',
-      location: location?.uuid,
+      location: sessionLocation?.uuid,
       preferred: false,
     };
     updatedPayload.identifiers = updatedPayload.identifiers || [];

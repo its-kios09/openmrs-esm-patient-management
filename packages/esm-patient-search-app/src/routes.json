@@ -6,10 +6,15 @@
   "pages": [
     {
       "component": "root",
-      "route": "search"
+      "route": "registration"
     }
   ],
   "extensions": [
+    {
+      "component": "root",
+      "name": "registration-dashboard-root",
+      "slot": "registration-slot"
+    },
     {
       "name": "patient-search-icon",
       "component": "patientSearchIcon",

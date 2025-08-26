@@ -212,7 +212,7 @@ const PatientInfo: React.FC<{ patient: fhir.Patient }> = ({ patient }) => {
  * @param {Object} hiePatient - The HIE patient resource
  * @returns {Object} Object containing differences between the patients
  */
-function comparePatients(localPatient, hiePatient) {
+export function comparePatients(localPatient, hiePatient) {
   const differences: Record<string, unknown> = {};
 
   // Compare name components

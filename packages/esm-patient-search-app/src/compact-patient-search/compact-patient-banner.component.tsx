@@ -55,30 +55,30 @@ const CompactPatientBanner = forwardRef<HTMLDivElement, CompactPatientBannerProp
     // search returns FHIR objects is much simpler because the code which uses the `fhirPatients`
     // doesn't have to be touched then.
     return patients.map((patient) => {
-      const preferredAddress = patient.person.addresses?.find((address) => address.preferred);
+      const preferredAddress = patient?.person?.addresses?.find((address) => address.preferred);
       return {
-        id: patient.uuid,
+        id: patient?.uuid,
         name: [
           {
             id: uuidv4(), // not used
-            given: [patient.person.personName.givenName, patient.person.personName.middleName],
-            family: patient.person.personName.familyName,
-            text: patient.person.personName.display,
+            given: [patient?.person?.personName?.givenName, patient?.person?.personName?.middleName],
+            family: patient?.person?.personName?.familyName,
+            text: patient?.person?.personName?.display,
           },
         ],
-        gender: patient.person.gender,
-        birthDate: patient.person.birthdate,
-        deceasedDateTime: patient.person.deathDate,
-        deceasedBoolean: patient.person.dead,
-        identifier: patient.identifiers as unknown as Array<FHIRIdentifier>,
+        gender: patient?.person?.gender,
+        birthDate: patient?.person?.birthdate,
+        deceasedDateTime: patient?.person?.deathDate,
+        deceasedBoolean: patient?.person?.dead,
+        identifier: patient?.identifiers as unknown as Array<FHIRIdentifier>,
         address: preferredAddress
           ? [
               {
                 id: uuidv4(), // not used
-                city: preferredAddress.cityVillage,
-                country: preferredAddress.country,
-                postalCode: preferredAddress.postalCode,
-                state: preferredAddress.stateProvince,
+                city: preferredAddress?.cityVillage,
+                country: preferredAddress?.country,
+                postalCode: preferredAddress?.postalCode,
+                state: preferredAddress?.stateProvince,
                 use: 'home',
               },
             ]
@@ -91,9 +91,9 @@ const CompactPatientBanner = forwardRef<HTMLDivElement, CompactPatientBannerProp
   return (
     <div ref={ref}>
       {fhirPatients.map((patient, index) => {
-        const preferredIdentifier = patients[index].identifiers.find((identifier) => identifier.preferred);
+        const preferredIdentifier = patients[index]?.identifiers?.find((identifier) => identifier.preferred);
 
-        const configuredIdentifiers = patients[index].identifiers.filter(
+        const configuredIdentifiers = patients[index]?.identifiers?.filter(
           (identifier) =>
             !identifier.preferred && config.defaultIdentifierTypes.includes(identifier.identifierType.uuid),
         );
@@ -107,7 +107,7 @@ const CompactPatientBanner = forwardRef<HTMLDivElement, CompactPatientBannerProp
         return (
           <ClickablePatientContainer key={patient.id} patient={patients[index]}>
             <div className={styles.patientAvatar} role="img">
-              <PatientPhoto patientUuid={patient.id} patientName={patientName} size="small" />
+              <PatientPhoto patientUuid={patient.id} patientName={patientName} />
             </div>
             <div>
               <div className={styles.flexRow}>
@@ -119,11 +119,11 @@ const CompactPatientBanner = forwardRef<HTMLDivElement, CompactPatientBannerProp
                 />
               </div>
               <div className={styles.demographics}>
-                {getGender(patient.gender)} <span className={styles.middot}>&middot;</span>{' '}
-                {patient.birthDate && age(patient.birthDate)}
+                {getGender(patient?.gender)} <span className={styles.middot}>&middot;</span>{' '}
+                {patient?.birthDate && age(patient?.birthDate)}
                 <span className={styles.middot}>&middot;</span>
-                {patientIdentifiers.map((identifier) => (
-                  <IdentifierTag key={identifier.uuid} identifier={identifier} />
+                {patientIdentifiers?.map((identifier) => (
+                  <IdentifierTag key={identifier?.uuid} identifier={identifier} />
                 ))}
               </div>
             </div>
@@ -135,7 +135,8 @@ const CompactPatientBanner = forwardRef<HTMLDivElement, CompactPatientBannerProp
 });
 
 const ClickablePatientContainer = ({ patient, children }: ClickablePatientContainerProps) => {
-  const { nonNavigationSelectPatientAction, patientClickSideEffect } = useContext(PatientSearchContext);
+  // Fixed: Use default empty object and optional chaining to prevent null errors
+  const { nonNavigationSelectPatientAction, patientClickSideEffect } = useContext(PatientSearchContext) || {};
   const config = useConfig<PatientSearchConfig>();
   const isDeceased = Boolean(patient?.person?.deathDate);
 
@@ -156,14 +157,10 @@ const ClickablePatientContainer = ({ patient, children }: ClickablePatientContai
   } else {
     return (
       <ConfigurableLink
-        className={classNames(styles.patientSearchResult, {
-          [styles.deceased]: isDeceased,
-        })}
+        className={classNames(styles.patientSearchResult, { [styles.deceased]: isDeceased })}
         key={patient.uuid}
         onBeforeNavigate={() => patientClickSideEffect?.(patient.uuid)}
-        to={interpolateString(config.search.patientChartUrl, {
-          patientUuid: patient.uuid,
-        })}>
+        to={interpolateString(config.search.patientChartUrl, { patientUuid: patient.uuid })}>
         {children}
       </ConfigurableLink>
     );

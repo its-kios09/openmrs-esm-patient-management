@@ -16,6 +16,7 @@ import patientSearchButtonComponent from './patient-search-button/patient-search
 import patientSearchBarComponent from './compact-patient-search-extension';
 import OtpAuthenticationModal from './mpi/otp-authentication.modal';
 import HieSycModal from './mpi/hie-syc.modal';
+import { createLeftPanelLink } from './left-panel-link/left-panel-link.component';
 const moduleName = '@kenyaemr/esm-patient-search-app';
 
 const options = {
@@ -39,6 +40,11 @@ export const otpAuthenticationModal = getSyncLifecycle(OtpAuthenticationModal, o
 export const hieSycModal = getSyncLifecycle(HieSycModal, options);
 export const patientSearchWorkspace = getAsyncLifecycle(
   () => import('./patient-search-workspace/patient-search.workspace'),
+  options,
+);
+
+export const registrationDashboardLink = getSyncLifecycle(
+  createLeftPanelLink({ name: 'registration', title: 'Registration' }),
   options,
 );
 
